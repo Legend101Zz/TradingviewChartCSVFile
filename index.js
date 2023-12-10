@@ -2,16 +2,22 @@ const getData = async () => {
   const res = await fetch("data3.csv");
   const resp = await res.text();
   const cdata = resp.split("\n").map((row, index) => {
-    const [time, open, high, low, close] = row.split(",");
+    const [dateTime, open, high, low, close] = row.split(",");
 
-    if (time && open && high && low && close) {
-      const parsedTime = new Date(time.replace(/-/g, "T") + "Z");
+    if (dateTime && open && high && low && close) {
+      const [datePart, timePart] = dateTime.split(" ");
+      const [year, month, day] = datePart.split("-");
+      const [hour, minute, second] = timePart.split(":");
+
+      const parsedTime = new Date(
+        Date.UTC(year, month - 1, day, hour, minute, second)
+      );
 
       if (isNaN(parsedTime)) {
-        console.error(`Invalid date format at line ${index + 1}: ${time}`);
+        console.error(`Invalid date format at line ${index + 1}: ${dateTime}`);
         return null;
       } else {
-        console.log(time, parsedTime);
+        console.log(dateTime, parsedTime);
         return {
           time: parsedTime / 1000,
           open: parseFloat(open),
