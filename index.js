@@ -1,51 +1,34 @@
 const getData = async () => {
   const res = await fetch("data3.csv");
   const resp = await res.text();
-  const cdata = resp.split("\n").map((row) => {
+  const cdata = resp.split("\n").map((row, index) => {
     const [time, open, high, low, close] = row.split(",");
 
     if (time && open && high && low && close) {
-      // let hour, minute;
+      const parsedTime = new Date(time.replace(/-/g, "T") + "Z");
 
-      // if (time.length === 3) {
-      //   // console.log(time);
-
-      //   hour = parseInt(time[0]);
-      //   minute = parseInt(time.slice(1));
-      // } else if (time.length === 4) {
-      //   hour = parseInt(time.slice(0, 2));
-      //   minute = parseInt(time.slice(2));
-      // } else {
-      //   return null;
-      // }
-      // const dateTimeStr = `${dateStart.slice(0, 4)}-${dateStart.slice(
-      //   4,
-      //   6
-      // )}-${dateStart.slice(6)} ${hour.toString().padStart(2, "0")}:${minute
-      //   .toString()
-      //   .padStart(2, "0")}:00`;
-
-      // const dateTime = new Date(dateTimeStr);
-
-      console.log(time, new Date(time).valueOf() / 1000);
-
-      const parsedTime = new Date(time.replace(/-/g, "/"));
-
-      //console.log(time, parsedTime);
-      return {
-        time: parsedTime / 1000,
-        open: parseFloat(open),
-        high: parseFloat(high),
-        low: parseFloat(low),
-        close: parseFloat(close),
-      };
+      if (isNaN(parsedTime)) {
+        console.error(`Invalid date format at line ${index + 1}: ${time}`);
+        return null;
+      } else {
+        console.log(time, parsedTime);
+        return {
+          time: parsedTime / 1000,
+          open: parseFloat(open),
+          high: parseFloat(high),
+          low: parseFloat(low),
+          close: parseFloat(close),
+        };
+      }
     } else {
+      console.error(`Invalid data format at line ${index + 1}: ${row}`);
       return null;
     }
   });
 
   return cdata.filter((row) => row !== null);
 };
+
 const calculateSMA = (data, period) => {
   const sma = [];
   for (let i = period - 1; i < data.length; i++) {
@@ -89,6 +72,9 @@ const displayChart = async () => {
             .toString()
             .padStart(2, "0")}:${date
             .getUTCMinutes()
+            .toString()
+            .padStart(2, "0")}:${date
+            .getUTCSeconds()
             .toString()
             .padStart(2, "0")}`;
           return formattedDate;
