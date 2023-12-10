@@ -27,12 +27,13 @@ const getData = async () => {
 
       // const dateTime = new Date(dateTimeStr);
 
-      console.log(dateTimeStr, new Date(time).valueOf() / 1000);
+      console.log(time, new Date(time).valueOf() / 1000);
 
-      const parsedTime = Date(time);
+      const parsedTime = new Date(time.replace(/-/g, "/"));
+
       //console.log(time, parsedTime);
       return {
-        time: new Date(time).valueOf() / 1000,
+        time: parsedTime / 1000,
         open: parseFloat(open),
         high: parseFloat(high),
         low: parseFloat(low),
@@ -74,23 +75,25 @@ const displayChart = async () => {
     },
     localization: {
       timeFormatter: (businessDayOrTimestamp) => {
-        // Assuming businessDayOrTimestamp is a Unix timestamp in milliseconds
-        const date = new Date(businessDayOrTimestamp);
-        const formattedDate = `${date.getUTCFullYear()}-${(
-          date.getUTCMonth() + 1
-        )
-          .toString()
-          .padStart(2, "0")}-${date
-          .getUTCDate()
-          .toString()
-          .padStart(2, "0")} ${date
-          .getUTCHours()
-          .toString()
-          .padStart(2, "0")}:${date
-          .getUTCMinutes()
-          .toString()
-          .padStart(2, "0")}`;
-        return formattedDate;
+        if (typeof businessDayOrTimestamp === "number") {
+          const date = new Date(businessDayOrTimestamp * 1000); // Convert seconds to milliseconds
+          const formattedDate = `${date.getUTCFullYear()}-${(
+            date.getUTCMonth() + 1
+          )
+            .toString()
+            .padStart(2, "0")}-${date
+            .getUTCDate()
+            .toString()
+            .padStart(2, "0")} ${date
+            .getUTCHours()
+            .toString()
+            .padStart(2, "0")}:${date
+            .getUTCMinutes()
+            .toString()
+            .padStart(2, "0")}`;
+          return formattedDate;
+        }
+        return "";
       },
     },
   };
