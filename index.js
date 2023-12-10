@@ -27,10 +27,12 @@ const getData = async () => {
 
       // const dateTime = new Date(dateTimeStr);
 
-      //console.log(dateTimeStr, dateTime);
+      console.log(dateTimeStr, new Date(time).valueOf() / 1000);
 
+      const parsedTime = Date(time);
+      //console.log(time, parsedTime);
       return {
-        time: time,
+        time: new Date(time).valueOf() / 1000,
         open: parseFloat(open),
         high: parseFloat(high),
         low: parseFloat(low),
@@ -70,6 +72,27 @@ const displayChart = async () => {
       vertLines: { color: "#444" },
       horzLines: { color: "#444" },
     },
+    localization: {
+      timeFormatter: (businessDayOrTimestamp) => {
+        // Assuming businessDayOrTimestamp is a Unix timestamp in milliseconds
+        const date = new Date(businessDayOrTimestamp);
+        const formattedDate = `${date.getUTCFullYear()}-${(
+          date.getUTCMonth() + 1
+        )
+          .toString()
+          .padStart(2, "0")}-${date
+          .getUTCDate()
+          .toString()
+          .padStart(2, "0")} ${date
+          .getUTCHours()
+          .toString()
+          .padStart(2, "0")}:${date
+          .getUTCMinutes()
+          .toString()
+          .padStart(2, "0")}`;
+        return formattedDate;
+      },
+    },
   };
 
   const domElement = document.getElementById("tvchart");
@@ -84,6 +107,7 @@ const displayChart = async () => {
   const candleseries = chart.addCandlestickSeries();
   candleseries.setData(klinedata);
 
+  chart.timeScale().fitContent();
   // Example of applying both properties in a single call
   chart.timeScale().applyOptions({
     borderColor: "#71649C",

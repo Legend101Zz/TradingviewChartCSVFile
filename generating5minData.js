@@ -31,7 +31,7 @@ const getData = async () => {
       const dateTime = new Date(dateTimeStr);
 
       return {
-        time: dateTime.getTime() / 1000,
+        time: dateTimeStr,
         open: parseFloat(open),
         high: parseFloat(high),
         low: parseFloat(low),
@@ -48,8 +48,8 @@ const getData = async () => {
 const processData = (data) => {
   const newData = [];
 
-  for (let i = 0; i < data.length; i += 5) {
-    const chunk = data.slice(i, i + 5);
+  for (let i = 0; i < data.length; i += 4) {
+    const chunk = data.slice(i, i + 4);
 
     if (chunk.length > 0) {
       const open = chunk[0].open;
