@@ -9,6 +9,22 @@
       body {
         padding: 0;
         margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      #tvchart {
+        width: 80%;
+        height: 60vh;
+      }
+
+      label,
+      select,
+      input,
+      button {
+        margin: 5px;
       }
     </style>
   </head>
@@ -32,14 +48,24 @@
     <input type="color" id="smaColor" value="#0000ff" />
     <br />
 
+    <!-- <label for="linePrice">Line Price:</label>
+    <input type="number" id="linePrice" value="150" />
+    <br />
+
+    <label for="lineTime">Line Time:</label>
+    <input type="number" id="lineTime" value="1638870000" />
+    <br />
+
+    <button onclick="addDynamicLine()">Add Dynamic Line</button> -->
+
     <button onclick="addSMA()">Add SMA</button>
 
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <script>
       const domElement = document.getElementById("tvchart");
       const chartProperties = {
-        width: window.innerWidth,
-        height: window.innerHeight,
+        width: window.width,
+        height: window.height,
         timeScale: {
           timeVisible: true,
           secondsVisible: true,
@@ -210,6 +236,33 @@
           }))
         );
       }
+
+      // function addDynamicLine() {
+      //   const linePriceInput = document.getElementById("linePrice");
+      //   const lineTimeInput = document.getElementById("lineTime");
+
+      //   const linePrice = parseFloat(linePriceInput.value);
+      //   const lineTime = parseInt(lineTimeInput.value, 10);
+
+      //   if (isNaN(linePrice) || isNaN(lineTime)) {
+      //     alert("Invalid input. Please enter valid numeric values.");
+      //     return;
+      //   }
+
+      //   // Add drawing tool
+      //   const drawingLine = chart.createShapeAnnotation({
+      //     color: "rgba(255, 0, 0, 0.7)",
+      //     shape: "line",
+      //     points: [
+      //       { time: lineTime, price: linePrice },
+      //       { time: lineTime, price: linePrice + 1 },
+      //     ],
+      //     borderStrokeColor: "rgba(255, 0, 0, 0.7)",
+      //     borderStrokeWidth: 1,
+      //   });
+
+      //   drawingLine.setFixedTime();
+      // }
 
       displayChart();
     </script>
