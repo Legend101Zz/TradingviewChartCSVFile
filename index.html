@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>NUNU TRADING</title>
     <style>
       body {
         padding: 0;
@@ -14,7 +14,204 @@
   </head>
   <body>
     <div id="tvchart"></div>
+
+    <label for="smaPeriod">SMA Period:</label>
+    <input type="number" id="smaPeriod" value="44" />
+    <br />
+
+    <label for="smaType">SMA Type:</label>
+    <select id="smaType">
+      <option value="open">Open</option>
+      <option value="high">High</option>
+      <option value="low">Low</option>
+      <option value="close" selected>Close</option>
+    </select>
+    <br />
+
+    <label for="smaColor">SMA Line Color:</label>
+    <input type="color" id="smaColor" value="#0000ff" />
+    <br />
+
+    <button onclick="addSMA()">Add SMA</button>
+
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <script>
+      const domElement = document.getElementById("tvchart");
+      const chartProperties = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        timeScale: {
+          timeVisible: true,
+          secondsVisible: true,
+        },
+        layout: {
+          background: { color: "#222" },
+          textColor: "#DDD",
+        },
+        grid: {
+          vertLines: { color: "#444" },
+          horzLines: { color: "#444" },
+        },
+        localization: {
+          timeFormatter: (businessDayOrTimestamp) => {
+            if (typeof businessDayOrTimestamp === "number") {
+              const date = new Date(businessDayOrTimestamp * 1000);
+              const formattedDate = `${date.getUTCFullYear()}-${(
+                date.getUTCMonth() + 1
+              )
+                .toString()
+                .padStart(2, "0")}-${date
+                .getUTCDate()
+                .toString()
+                .padStart(2, "0")} ${date
+                .getUTCHours()
+                .toString()
+                .padStart(2, "0")}:${date
+                .getUTCMinutes()
+                .toString()
+                .padStart(2, "0")}:${date
+                .getUTCSeconds()
+                .toString()
+                .padStart(2, "0")}`;
+              return formattedDate;
+            }
+            return "";
+          },
+        },
+      };
+      var chart = LightweightCharts.createChart(domElement, chartProperties);
+
+      const getData = async () => {
+        const res = await fetch("data3.csv");
+        const resp = await res.text();
+        const cdata = resp.split("\n").map((row, index) => {
+          const [dateTime, open, high, low, close] = row.split(",");
+
+          if (dateTime && open && high && low && close) {
+            const [datePart, timePart] = dateTime.split(" ");
+            const [year, month, day] = datePart.split("-");
+            const [hour, minute, second] = timePart.split(":");
+
+            const parsedTime = new Date(
+              Date.UTC(year, month - 1, day, hour, minute, second)
+            );
+
+            if (isNaN(parsedTime)) {
+              console.error(
+                `Invalid date format at line ${index + 1}: ${dateTime}`
+              );
+              return null;
+            } else {
+              console.log(dateTime, parsedTime);
+              return {
+                time: parsedTime / 1000,
+                open: parseFloat(open),
+                high: parseFloat(high),
+                low: parseFloat(low),
+                close: parseFloat(close),
+              };
+            }
+          } else {
+            console.error(`Invalid data format at line ${index + 1}: ${row}`);
+            return null;
+          }
+        });
+
+        return cdata.filter((row) => row !== null);
+      };
+
+      const calculateSMA = (data, period) => {
+        const sma = [];
+        for (let i = period - 1; i < data.length; i++) {
+          const sum = data
+            .slice(i - period + 1, i + 1)
+            .reduce((acc, val) => acc + val.close, 0);
+          sma.push(sum / period);
+        }
+        return sma;
+      };
+
+      function calculateSMAByType(data, period, type) {
+        const sma = [];
+        for (let i = period - 1; i < data.length; i++) {
+          const sum = data
+            .slice(i - period + 1, i + 1)
+            .reduce((acc, val) => acc + val[type], 0);
+          sma.push(sum / period);
+        }
+        return sma;
+      }
+
+      const displayChart = async () => {
+        var klinedata = await getData();
+
+        console.log("data", klinedata);
+
+        const candleseries = chart.addCandlestickSeries();
+        candleseries.setData(klinedata);
+
+        chart.timeScale().fitContent();
+
+        chart.timeScale().applyOptions({
+          borderColor: "#71649C",
+          barSpacing: 10,
+        });
+
+        chart.applyOptions({
+          crosshair: {
+            mode: LightweightCharts.CrosshairMode.Normal,
+
+            // Vertical crosshair line (showing Date in Label)
+            vertLine: {
+              width: 8,
+              color: "#C3BCDB44",
+              style: LightweightCharts.LineStyle.Solid,
+              labelBackgroundColor: "#9B7DFF",
+            },
+
+            // Horizontal crosshair line (showing Price in Label)
+            horzLine: {
+              color: "#9B7DFF",
+              labelBackgroundColor: "#9B7DFF",
+            },
+          },
+        });
+
+        addSMA();
+      };
+
+      async function addSMA() {
+        const smaPeriodInput = document.getElementById("smaPeriod");
+        const smaPeriod = parseInt(smaPeriodInput.value, 10);
+
+        const smaTypeSelect = document.getElementById("smaType");
+        const smaType = smaTypeSelect.value;
+
+        const smaColorInput = document.getElementById("smaColor");
+        const smaColor = smaColorInput.value;
+
+        if (isNaN(smaPeriod) || smaPeriod <= 0) {
+          alert("Invalid SMA Period. Please enter a positive integer.");
+          return;
+        }
+
+        var klinedata = await getData();
+
+        const smaData = calculateSMAByType(klinedata, smaPeriod, smaType);
+
+        const smaSeries = chart.addLineSeries({
+          color: smaColor,
+          lineWidth: 2,
+        });
+        smaSeries.setData(
+          smaData.map((value, index) => ({
+            time: klinedata[index + smaPeriod - 1].time,
+            value,
+          }))
+        );
+      }
+
+      displayChart();
+    </script>
   </body>
-  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="index.js"></script>
 </html>

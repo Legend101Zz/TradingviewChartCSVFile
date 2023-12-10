@@ -132,76 +132,44 @@ const displayChart = async () => {
     },
   });
 
+  function addSMA() {
+    const smaPeriodInput = document.getElementById("smaPeriod");
+    const smaPeriod = parseInt(smaPeriodInput.value, 10);
+
+    const smaTypeSelect = document.getElementById("smaType");
+    const smaType = smaTypeSelect.value;
+
+    const smaColorInput = document.getElementById("smaColor");
+    const smaColor = smaColorInput.value;
+
+    if (isNaN(smaPeriod) || smaPeriod <= 0) {
+      alert("Invalid SMA Period. Please enter a positive integer.");
+      return;
+    }
+
+    const smaData = calculateSMAByType(klinedata, smaPeriod, smaType);
+
+    const smaSeries = chart.addLineSeries({ color: smaColor, lineWidth: 2 });
+    smaSeries.setData(
+      smaData.map((value, index) => ({
+        time: klinedata[index + smaPeriod - 1].time,
+        value,
+      }))
+    );
+  }
+
   console.log(candleseries);
-
-  // Calculate and add a 10-period SMA line
-  // const sma10 = calculateSMA(klinedata, 44);
-  // const lineSeries10 = chart.addLineSeries({ color: "blue", lineWidth: 2 });
-  // lineSeries10.setData(
-  //   sma10.map((value, index) => ({ time: klinedata[index + 9].time, value }))
-  // );
-
-  // // Calculate and add a 44-period high SMA line
-  // const sma44High = calculateSMA(klinedata, 44);
-  // const lineSeries44High = chart.addLineSeries({
-  //   color: "green",
-  //   lineWidth: 2,
-  // });
-  // lineSeries44High.setData(
-  //   sma44High.map((value, index) => ({
-  //     time: klinedata[index + 43].time,
-  //     value,
-  //   }))
-  // );
-
-  // // Calculate and add a 44-period low SMA line
-  // const sma44Low = calculateSMA(klinedata, 44);
-  // const lineSeries44Low = chart.addLineSeries({ color: "red", lineWidth: 2 });
-  // lineSeries44Low.setData(
-  //   sma44Low.map((value, index) => ({
-  //     time: klinedata[index + 43].time,
-  //     value,
-  //   }))
-  // );
-
-  // let sma10Visible = true;
-  // let sma44HighVisible = true;
-  // let sma44LowVisible = true;
-
-  // const toggleSMAVisibility = (smaType) => {
-  //   switch (smaType) {
-  //     case "sma10":
-  //       sma10Visible = !sma10Visible;
-  //       lineSeries10.applyOptions({ visible: sma10Visible });
-  //       break;
-  //     case "sma44High":
-  //       sma44HighVisible = !sma44HighVisible;
-  //       lineSeries44High.applyOptions({ visible: sma44HighVisible });
-  //       break;
-  //     case "sma44Low":
-  //       sma44LowVisible = !sma44LowVisible;
-  //       lineSeries44Low.applyOptions({ visible: sma44LowVisible });
-  //       break;
-  //     default:
-  //       break;
-  //   }
-  // };
-
-  // const addButton = (text, smaType) => {
-  //   const button = document.createElement("button");
-  //   button.innerText = text;
-  //   button.onclick = () => toggleSMAVisibility(smaType);
-  //   document.body.appendChild(button);
-  // };
-
-  // // Call the addButton function to create buttons for each SMA indicator
-  // addButton("Toggle SMA10", "sma10");
-  // addButton("Toggle SMA44 High", "sma44High");
-  // addButton("Toggle SMA44 Low", "sma44Low");
-
-  window.addEventListener("resize", () => {
-    chart.resize(window.innerWidth, window.innerHeight);
-  });
 };
+
+function calculateSMAByType(data, period, type) {
+  const sma = [];
+  for (let i = period - 1; i < data.length; i++) {
+    const sum = data
+      .slice(i - period + 1, i + 1)
+      .reduce((acc, val) => acc + val[type], 0);
+    sma.push(sum / period);
+  }
+  return sma;
+}
 
 displayChart();
